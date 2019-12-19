@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cstdio>
 #include <cstdlib>
+#include <vector>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -17,6 +18,7 @@ superblock* read_sb(void);
 void write_bs(int fd);
 void write_sb(int fd, superblock *sb);
 void init_inode(int fd, int inode_offset, int max_inode, int data_offset);
+void write_inode(int fd, superblock *sb);
 
 int main(void)
 {
@@ -25,9 +27,22 @@ int main(void)
   write_bs(fd);
   write_sb(fd, sb);
   init_inode(fd, sb->inode_offset, sb->max_inode, sb->data_offset);
-  write_inode();
+  write_inode(fd, sb);
   close(fd);
+  free(sb);
   return 0;
+}
+
+void write_inode(int fd, superblock *sb)
+{
+  io::CSVReader<4> in("dir_tree.csv");
+  in.read_header(io::ignore_extra_column, "Name", "Type", "Parent", "size");
+  std::string name, tp, parent;
+  int size;
+  while(in.read_row(name, tp, parent, size))
+  {
+    //read and write
+  }
 }
 
 void init_inode(int fd, int inode_offset, int max_inode, int data_offset)
