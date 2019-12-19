@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include <cstdlib>
 #include <unistd.h>
@@ -19,9 +20,10 @@ void write_sb(int fd, superblock *sb);
 int main(void)
 {
   superblock *sb = read_sb();
-  int fd = open("./HB", O_RDWR | O_CREAT | O_TRUNC);
+  int fd = open("./HD", O_RDWR | O_CREAT | O_TRUNC);
   write_bs(fd);
   write_sb(fd, sb);
+  close(fd);
   return 0;
 }
 
@@ -48,6 +50,15 @@ superblock* read_sb(void)
   sb->next_available_inode = 0;
   sb->next_available_blk = 0;
   sb->blk_size = BLOCK_SIZE;
+
+  std::ifstream ifs;
+  ifs.open("superblock.csv", std::ifstream::in);
+  if(ifs.is_open()==0)
+  {
+    ifs.close();
+    return sb;
+  }
+  ifs.close();
 
   io::CSVReader<2> in("superblock.csv");
   std::string data_type;
