@@ -16,6 +16,7 @@
 superblock* read_sb(void);
 void write_bs(int fd);
 void write_sb(int fd, superblock *sb);
+void init_inode(int fd, int inode_offset, int max_inode, int data_offset);
 
 int main(void)
 {
@@ -23,8 +24,18 @@ int main(void)
   int fd = open("./HD", O_RDWR | O_CREAT | O_TRUNC);
   write_bs(fd);
   write_sb(fd, sb);
+  init_inode(fd, sb->inode_offset, sb->max_inode, sb->data_offset);
+  write_inode();
   close(fd);
   return 0;
+}
+
+void init_inode(int fd, int inode_offset, int max_inode, int data_offset)
+{
+  int curpos = lseek(fd, inode_offset, SEEK_SET);
+  char *inode = (char*)malloc(data_offset);
+  write(fd,inode,data_offset);
+  free(inode);
 }
 
 void write_sb(int fd, superblock *sb)
@@ -38,6 +49,7 @@ void write_bs(int fd)
   char *boot = (char*)malloc(INODE_OFFSET);
   memset(boot,0,INODE_OFFSET);
   write(fd,boot,INODE_OFFSET);
+  free(boot);
 }
 
 superblock* read_sb(void)

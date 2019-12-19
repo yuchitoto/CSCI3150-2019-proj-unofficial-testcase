@@ -1,0 +1,8 @@
+Name,Type,Parent,size
+/,dir,/,0
+dir1,dir,/,0
+dir2,dir,/,0
+dir3,dir,dir1,0
+file1,file,dir1,2043
+file2,file,dir2,1000026
+file3,file,dir2,77490
