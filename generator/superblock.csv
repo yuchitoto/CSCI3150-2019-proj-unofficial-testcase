@@ -1,0 +1,5 @@
+inode_offset,4096
+data_offset,10485760
+max_inode,100
+max_data_blk,256000
+blk_size,4096
