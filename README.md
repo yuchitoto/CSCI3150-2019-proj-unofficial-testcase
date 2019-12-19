@@ -33,6 +33,12 @@ Declaration: I did not use recursive algorithm to handle it
 Simple arithmetic on file_size(inode->i_size)
 
 ## HD generator
+The HD generator (in progress) is in [/generator](https://github.com/yuchitoto/CSCI3150-2019-proj-unofficial-testcase/tree/master/generator) folder. You can create different virtual HD for this project using this program by changing parameters in superblock.csv and dir_tree.csv
+
+### superblock.csv
+You can remove any rows if you want to use the normal SFS HD definition of this project.
+
+Or you can simply remove this csv if you are not going to specify any special parameters.
 
 ## Preprocessor Using Examples
 
