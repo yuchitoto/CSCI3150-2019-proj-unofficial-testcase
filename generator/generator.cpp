@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <queue>
+#include <cstring>
 #include <string>
 #include <cmath>
 #include <unistd.h>
@@ -18,7 +19,7 @@
 #define MB 1024*KB
 
 superblock* read_sb(void);
-void write_bs(int fd);
+void write_bs(int fd, superblock *sb);
 void write_sb(int fd, superblock *sb);
 void init_inode(int fd, int inode_offset, int max_inode, int data_offset);
 void write_inode(int fd, superblock *sb);
@@ -53,7 +54,7 @@ void write_inode(int fd, superblock *sb)
   int size;
   std::queue<DIR_NODE> dir[sb->max_inode];
   inode i[sb->max_inode];
-  string dir_name[sb->max_inode];
+  std::string dir_name[sb->max_inode];
   DIR_NODE tmp;
   while(in.read_row(name, tp, parent, size))
   {
@@ -62,21 +63,21 @@ void write_inode(int fd, superblock *sb)
       //save inode
       if(name.compare("/")==0)
       {
-        dir_name[0] = name.cstr();
+        dir_name[0] = name.c_str();
         i[0].i_number = 0;
         i[0].i_mtime = time(NULL);
         i[0].i_type = 1;
         i[0].i_size = 2*sizeof(DIR_NODE);
         i[0].file_num=2;
-        tmp.dir = ".";
+        strcpy(tmp.dir ,".");
         tmp.inode_number = 0;
         dir[0].push(tmp);
-        tmp.dir = "..";
+        strcpy(tmp.dir, "..");
         dir[0].push(tmp);
         sb->next_available_inode++;
       }
       else{
-        dir_name[sb->next_available_inode] = name.cstr();
+        dir_name[sb->next_available_inode] = name.c_str();
         i[sb->next_available_inode].i_number = sb->next_available_inode;
         i[sb->next_available_inode].i_mtime = time(NULL);
         i[sb->next_available_inode].i_type = 1;
@@ -98,12 +99,12 @@ void write_inode(int fd, superblock *sb)
         }
         i[parent_i].i_size += sizeof(DIR_NODE);
         i[parent_i].file_num++;
-        tmp.dir = name;
+        strcpy(tmp.dir, name.c_str());
         tmp.inode_number = sb->next_available_inode;
         dir[parent_i].push(tmp);
-        tmp.dir = ".";
+        strcpy(tmp.dir,".");
         dir[sb->next_available_inode].push(tmp);
-        tmp.dir = "..";
+        strcpy(tmp.dir, "..");
         tmp.inode_number = parent_i;
         dir[sb->next_available_inode].push(tmp);
         sb->next_available_inode++;
@@ -116,7 +117,7 @@ void write_inode(int fd, superblock *sb)
         std::cerr << "warning: file: " << name << " too big" << std::endl;
       }
       //save inode
-      dir_name[sb->next_available_inode] = name.cstr();
+      dir_name[sb->next_available_inode] = name.c_str();
       i[sb->next_available_inode].i_number = sb->next_available_inode;
       i[sb->next_available_inode].i_mtime = time(NULL);
       i[sb->next_available_inode].i_type = 0;
@@ -125,7 +126,7 @@ void write_inode(int fd, superblock *sb)
       int parent_i = -1;
       for(int count=0; count<sb->next_available_inode; count++)
       {
-        if(dir_name.compare(parent)==0)
+        if(parent.compare(dir_name[count])==0)
         {
           parent_i = count;
           break;
@@ -133,12 +134,12 @@ void write_inode(int fd, superblock *sb)
       }
       if(parent_i<0)
       {
-        std::cerr << "parent not found for " << name << sdt::endl;
+        std::cerr << "parent not found for " << name << std::endl;
         exit(-1);
       }
       i[parent_i].i_size += sizeof(DIR_NODE);
       i[parent_i].file_num++;
-      tmp.dir = name.cstr();
+      strcpy(tmp.dir, name.c_str());
       tmp.inode_number = sb->next_available_inode;
       dir[parent_i].push(tmp);
       sb->next_available_inode++;
@@ -158,7 +159,7 @@ void write_inode(int fd, superblock *sb)
     sb->next_available_blk++;
     if(i[a].i_type == 1)
     {
-      lseek(fd, sb->data_offset+i[a].direct_blk[0]*sb->blk_size);
+      lseek(fd, sb->data_offset+i[a].direct_blk[0]*sb->blk_size, SEEK_SET);
       /*int cur = i[a].direct_blk[0];
       int tmp_size = 0;*/
       while(!dir[a].empty())
@@ -187,7 +188,7 @@ void write_inode(int fd, superblock *sb)
   }
   if(sb->next_available_blk-1 > sb->max_data_blk)
   {
-    std::cerr << "number of data block exceeds limit" << endl;
+    std::cerr << "number of data block exceeds limit" << std::endl;
   }
 }
 

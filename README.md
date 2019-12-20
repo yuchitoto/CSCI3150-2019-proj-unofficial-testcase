@@ -32,7 +32,7 @@ Declaration: I did not use recursive algorithm to handle it
 ### read_t()
 Simple arithmetic on file_size(inode->i_size)
 
-## HD generator (pre-alpha)
+## HD generator (in-progress)
 The HD generator is in [/generator](https://github.com/yuchitoto/CSCI3150-2019-proj-unofficial-testcase/tree/master/generator) folder. You can create different virtual HD for this project using this program by changing parameters in superblock.csv and dir_tree.csv
 
 **32-bit linux only**
