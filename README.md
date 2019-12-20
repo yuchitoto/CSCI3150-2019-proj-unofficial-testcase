@@ -32,8 +32,18 @@ Declaration: I did not use recursive algorithm to handle it
 ### read_t()
 Simple arithmetic on file_size(inode->i_size)
 
-## HD generator
-The HD generator (in progress) is in [/generator](https://github.com/yuchitoto/CSCI3150-2019-proj-unofficial-testcase/tree/master/generator) folder. You can create different virtual HD for this project using this program by changing parameters in superblock.csv and dir_tree.csv
+## HD generator (pre-alpha)
+The HD generator is in [/generator](https://github.com/yuchitoto/CSCI3150-2019-proj-unofficial-testcase/tree/master/generator) folder. You can create different virtual HD for this project using this program by changing parameters in superblock.csv and dir_tree.csv
+
+**Multiple direct block and indirect block for directory inode is not supported by this generator as this is an _SFS_ HD generator.**
+
+**Files too large will not be cut by this generator nor will it stop writing it in to the HD.**
+
+**This generator will not stop writing even when data block limit is reached.**
+
+~~This is because the developer is lazy~~
+
+This is to implement erroneous cases for testing call.c
 
 ### superblock.csv
 You can remove any rows if you want to use the normal SFS HD definition of this project.

@@ -2,8 +2,9 @@
 #include <fstream>
 #include <cstdio>
 #include <cstdlib>
-#include <vector>
+#include <queue>
 #include <string>
+#include <cmath>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -20,33 +21,37 @@ superblock* read_sb(void);
 void write_bs(int fd);
 void write_sb(int fd, superblock *sb);
 void init_inode(int fd, int inode_offset, int max_inode, int data_offset);
-int* write_inode(int fd, superblock *sb);
+void write_inode(int fd, superblock *sb);
+void init_datablk(int fd, int data_offset, int blk_size, int pos);
 
 int main(void)
 {
   superblock *sb = read_sb();
   int fd = open("./HD", O_RDWR | O_CREAT | O_TRUNC);
-  write_bs(fd);
-  write_sb(fd, sb);
+  write_bs(fd, sb);
   init_inode(fd, sb->inode_offset, sb->max_inode, sb->data_offset);
-  int *cur = write_inode(fd, sb);
-  sb->next_available_inode = cur[0];
-  sb->next_available_blk = cur[1];
+  write_inode(fd, sb);
   write_sb(fd, sb);
   close(fd);
   free(sb);
   return 0;
 }
 
-int* write_inode(int fd, superblock *sb)
+void init_datablk(int fd, int data_offset, int blk_size, int pos)
+{
+  lseek(fd, data_offset+pos*blk_size, SEEK_SET);
+  char *blk = (char*)malloc(blk_size);
+  memset(blk,0,blk_size);
+  write(fd,blk,blk_size);
+}
+
+void write_inode(int fd, superblock *sb)
 {
   io::CSVReader<4> in("dir_tree.csv");
   in.read_header(io::ignore_extra_column, "Name", "Type", "Parent", "size");
   std::string name, tp, parent;
   int size;
-  int *curpointer=(int*)malloc(2*sizeof(int)); //0 = inode 1 = datablk
-  memset(curpointer,0,2*sizeof(int));
-  std::vector<DIR_NODE> dir[sb->max_inode];
+  std::queue<DIR_NODE> dir[sb->max_inode];
   inode i[sb->max_inode];
   string dir_name[sb->max_inode];
   DIR_NODE tmp;
@@ -65,20 +70,20 @@ int* write_inode(int fd, superblock *sb)
         i[0].file_num=2;
         tmp.dir = ".";
         tmp.inode_number = 0;
-        dir[0].push_back(tmp);
+        dir[0].push(tmp);
         tmp.dir = "..";
-        dir[0].push_back(tmp);
-        curpointer[0]++;
+        dir[0].push(tmp);
+        sb->next_available_inode++;
       }
       else{
-        dir_name[curpointer[0]] = name.cstr();
-        i[curpointer[0]].i_number = curpointer[0];
-        i[curpointer[0]].i_mtime = time(NULL);
-        i[curpointer[0]].i_type = 1;
-        i[curpointer[0]].i_size = 2*sizeof(DIR_NODE);
-        i[curpointer[0]].file_num = 2;
+        dir_name[sb->next_available_inode] = name.cstr();
+        i[sb->next_available_inode].i_number = sb->next_available_inode;
+        i[sb->next_available_inode].i_mtime = time(NULL);
+        i[sb->next_available_inode].i_type = 1;
+        i[sb->next_available_inode].i_size = 2*sizeof(DIR_NODE);
+        i[sb->next_available_inode].file_num = 2;
         int parent_i = -1;
-        for(int count=0; count<curpointer[0]; count++)
+        for(int count=0; count<sb->next_available_inode; count++)
         {
           if(dir_name[count].compare(parent)==0)
           {
@@ -94,27 +99,31 @@ int* write_inode(int fd, superblock *sb)
         i[parent_i].i_size += sizeof(DIR_NODE);
         i[parent_i].file_num++;
         tmp.dir = name;
-        tmp.inode_number = curpointer[0];
-        dir[parent_i].push_back(tmp);
+        tmp.inode_number = sb->next_available_inode;
+        dir[parent_i].push(tmp);
         tmp.dir = ".";
-        dir[curpointer[0]].push_back(tmp);
+        dir[sb->next_available_inode].push(tmp);
         tmp.dir = "..";
         tmp.inode_number = parent_i;
-        dir[curpointer[0]].push_back(tmp);
-        curpointer[0]++;
+        dir[sb->next_available_inode].push(tmp);
+        sb->next_available_inode++;
       }
     }
     else if(tp.compare("file")==0)
     {
+      if(size > (sb->blk_size*2 + sb->blk_size*(sb->blk_size/sizeof(inode))))
+      {
+        std::cerr << "warning: file: " << name << " too big" << std::endl;
+      }
       //save inode
-      dir_name[curpointer[0]] = name.cstr();
-      i[curpointer[0]].i_number = curpointer[0];
-      i[curpointer[0]].i_mtime = time(NULL);
-      i[curpointer[0]].i_type = 0;
-      i[curpointer[0]].i_size = size;
-      i[curpointer[0]].file_num = 1;
+      dir_name[sb->next_available_inode] = name.cstr();
+      i[sb->next_available_inode].i_number = sb->next_available_inode;
+      i[sb->next_available_inode].i_mtime = time(NULL);
+      i[sb->next_available_inode].i_type = 0;
+      i[sb->next_available_inode].i_size = size;
+      i[sb->next_available_inode].file_num = 1;
       int parent_i = -1;
-      for(int count=0; count<curpointer[0]; count++)
+      for(int count=0; count<sb->next_available_inode; count++)
       {
         if(dir_name.compare(parent)==0)
         {
@@ -130,12 +139,56 @@ int* write_inode(int fd, superblock *sb)
       i[parent_i].i_size += sizeof(DIR_NODE);
       i[parent_i].file_num++;
       tmp.dir = name.cstr();
-      tmp.inode_number = curpointer[0];
-      dir[parent_i].push_back(tmp);
-      curpointer[0]++;
+      tmp.inode_number = sb->next_available_inode;
+      dir[parent_i].push(tmp);
+      sb->next_available_inode++;
     }
   }
-  return curpointer;
+
+  for(int a=0; a<sb->next_available_inode; a++)
+  {
+    i[a].direct_blk[0] = sb->next_available_blk;
+    init_datablk(fd, sb->data_offset, sb->blk_size, i[a].direct_blk[0]);
+    i[a].direct_blk[1] = (i[a].i_size > sb->blk_size) ? ++sb->next_available_blk : sb->next_available_blk;
+    init_datablk(fd, sb->data_offset, sb->blk_size, i[a].direct_blk[1]);
+    i[a].indirect_blk = (i[a].i_size > sb->blk_size*2) ? ++sb->next_available_blk : sb->next_available_blk;
+    init_datablk(fd, sb->data_offset, sb->blk_size, i[a].indirect_blk);
+    lseek(fd, sb->inode_offset + a*sizeof(inode), SEEK_SET);
+    write(fd, i[a], sizeof(inode));
+    sb->next_available_blk++;
+    if(i[a].i_type == 1)
+    {
+      lseek(fd, sb->data_offset+i[a].direct_blk[0]*sb->blk_size);
+      /*int cur = i[a].direct_blk[0];
+      int tmp_size = 0;*/
+      while(!dir[a].empty())
+      {
+        /*tmp_size+=sizeof(DIR_NODE);
+        if(tmp_size > sb->blk_size)
+        {
+          cur++;
+          if(cur != i[a].direct_blk[1])
+          {
+
+          }
+        }*/
+        write(fd, dir[a].front(),sizeof(DIR_NODE));
+        dir[a].pop();
+      }
+    }
+    else
+    {
+      int num_blk_needed = (int)(ceil((double)i[a].i_size / (double)sb->blk_size));
+      for(int k=2; k<num_blk_needed; k++)
+      {
+        init_datablk(fd, sb->data_offset, sb->blk_size, sb->next_available_blk++);
+      }
+    }
+  }
+  if(sb->next_available_blk-1 > sb->max_data_blk)
+  {
+    std::cerr << "number of data block exceeds limit" << endl;
+  }
 }
 
 void init_inode(int fd, int inode_offset, int max_inode, int data_offset)
@@ -152,11 +205,11 @@ void write_sb(int fd, superblock *sb)
   write(fd,sb,sizeof(superblock));
 }
 
-void write_bs(int fd)
+void write_bs(int fd, superblock *sb)
 {
-  char *boot = (char*)malloc(INODE_OFFSET);
-  memset(boot,0,INODE_OFFSET);
-  write(fd,boot,INODE_OFFSET);
+  char *boot = (char*)malloc(sb->inode_offset);
+  memset(boot,0,sb->inode_offset);
+  write(fd,boot,sb->inode_offset);
   free(boot);
 }
 
