@@ -155,7 +155,7 @@ void write_inode(int fd, superblock *sb)
     i[a].indirect_blk = (i[a].i_size > sb->blk_size*2) ? ++sb->next_available_blk : sb->next_available_blk;
     init_datablk(fd, sb->data_offset, sb->blk_size, i[a].indirect_blk);
     lseek(fd, sb->inode_offset + a*sizeof(inode), SEEK_SET);
-    write(fd, i[a], sizeof(inode));
+    write(fd, &i[a], sizeof(inode));
     sb->next_available_blk++;
     if(i[a].i_type == 1)
     {
@@ -173,7 +173,7 @@ void write_inode(int fd, superblock *sb)
 
           }
         }*/
-        write(fd, dir[a].front(),sizeof(DIR_NODE));
+        write(fd, &dir[a].front(),sizeof(DIR_NODE));
         dir[a].pop();
       }
     }
