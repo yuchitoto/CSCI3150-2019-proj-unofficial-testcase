@@ -35,6 +35,8 @@ Simple arithmetic on file_size(inode->i_size)
 ## HD generator (beta)
 The HD generator is in [/generator](https://github.com/yuchitoto/CSCI3150-2019-proj-unofficial-testcase/tree/master/generator) folder. You can create different virtual HD for this project using this program by changing parameters in superblock.csv and dir_tree.csv
 
+This generator forms inode following ordering in csv file. So the **parent must be declared prior to its children nodes**.
+
 **32-bit linux only**
 
 **Multiple direct block and indirect block for directory inode is not supported by this generator as this is an _SFS_ HD generator.**
