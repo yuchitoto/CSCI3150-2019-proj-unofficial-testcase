@@ -15,23 +15,32 @@
 #include "../inode.h"
 #include <ctime>
 
+#ifndef PATH_LENGTH_LIMIT
+#define PATH_LENGTH_LIMIT 100
+#endif
 #define KB 1024
 #define MB 1024*KB
 
-superblock* read_sb(void);
+superblock* read_sb(char* path);
 void write_bs(int fd, superblock *sb);
 void write_sb(int fd, superblock *sb);
 void init_inode(int fd, int inode_offset, int max_inode, int data_offset);
-void write_inode(int fd, superblock *sb);
+void write_inode(int fd, superblock *sb, char* path);
 void init_datablk(int fd, int data_offset, int blk_size, int pos);
 
-int main(void)
+int main(int argc, char** argv)
 {
-  superblock *sb = read_sb();
-  int fd = open("./HD", O_RDWR | O_CREAT | O_TRUNC);
+  char *path = (char*)malloc(PATH_LENGTH_LIMIT);
+  strcpy(path,"./");
+  if(argc == 2)
+  {
+    strcpy(path, argv[1]);
+  }
+  superblock *sb = read_sb(path);
+  int fd = open("../HD", O_RDWR | O_CREAT | O_TRUNC);
   write_bs(fd, sb);
   init_inode(fd, sb->inode_offset, sb->max_inode, sb->data_offset);
-  write_inode(fd, sb);
+  write_inode(fd, sb, path);
   write_sb(fd, sb);
   close(fd);
   free(sb);
@@ -46,22 +55,29 @@ void init_datablk(int fd, int data_offset, int blk_size, int pos)
   write(fd,blk,blk_size);
 }
 
-void write_inode(int fd, superblock *sb)
+void write_inode(int fd, superblock *sb, char *path)
 {
-  io::CSVReader<4> in("dir_tree.csv");
+  //read from csv
+  char csv_path[PATH_LENGTH_LIMIT+50];
+  strcat(csv_path,path);
+  strcat(csv_path,"/dir_tree.csv");
+  io::CSVReader<4> in(csv_path);
   in.read_header(io::ignore_extra_column, "Name", "Type", "Parent", "size");
   std::string name, tp, parent;
   int size;
+
+  //inode storage
   std::queue<DIR_NODE> dir[sb->max_inode];
   inode i[sb->max_inode];
   std::string dir_name[sb->max_inode];
+
   DIR_NODE tmp;
   while(in.read_row(name, tp, parent, size))
   {
-    if(tp.compare("dir")==0)
+    if(tp.compare("dir")==0) //directory
     {
       //save inode
-      if(name.compare("/")==0)
+      if(name.compare("/")==0)//root
       {
         dir_name[0] = name.c_str();
         i[0].i_number = 0;
@@ -69,6 +85,8 @@ void write_inode(int fd, superblock *sb)
         i[0].i_type = 1;
         i[0].i_size = 2*sizeof(DIR_NODE);
         i[0].file_num=2;
+
+        //update dir mapping
         strcpy(tmp.dir ,".");
         tmp.inode_number = 0;
         dir[0].push(tmp);
@@ -76,13 +94,16 @@ void write_inode(int fd, superblock *sb)
         dir[0].push(tmp);
         sb->next_available_inode++;
       }
-      else{
+      else //not root
+      {
         dir_name[sb->next_available_inode] = name.c_str();
         i[sb->next_available_inode].i_number = sb->next_available_inode;
         i[sb->next_available_inode].i_mtime = time(NULL);
         i[sb->next_available_inode].i_type = 1;
         i[sb->next_available_inode].i_size = 2*sizeof(DIR_NODE);
         i[sb->next_available_inode].file_num = 2;
+
+        //locate parent
         int parent_i = -1;
         for(int count=0; count<sb->next_available_inode; count++)
         {
@@ -97,6 +118,8 @@ void write_inode(int fd, superblock *sb)
           std::cerr << "parent not found for " << name << std::endl;
           exit(-1);
         }
+
+        //update dir mapping
         i[parent_i].i_size += sizeof(DIR_NODE);
         i[parent_i].file_num++;
         strcpy(tmp.dir, name.c_str());
@@ -110,7 +133,7 @@ void write_inode(int fd, superblock *sb)
         sb->next_available_inode++;
       }
     }
-    else if(tp.compare("file")==0)
+    else if(tp.compare("file")==0)//file
     {
       if(size > (sb->blk_size*2 + sb->blk_size*(sb->blk_size/sizeof(inode))))
       {
@@ -123,6 +146,8 @@ void write_inode(int fd, superblock *sb)
       i[sb->next_available_inode].i_type = 0;
       i[sb->next_available_inode].i_size = size;
       i[sb->next_available_inode].file_num = 1;
+
+      //locate parent
       int parent_i = -1;
       for(int count=0; count<sb->next_available_inode; count++)
       {
@@ -137,6 +162,8 @@ void write_inode(int fd, superblock *sb)
         std::cerr << "parent not found for " << name << std::endl;
         exit(-1);
       }
+
+      //update dir mapping
       i[parent_i].i_size += sizeof(DIR_NODE);
       i[parent_i].file_num++;
       strcpy(tmp.dir, name.c_str());
@@ -146,23 +173,29 @@ void write_inode(int fd, superblock *sb)
     }
   }
 
+  //write into HD
   for(int a=0; a<sb->next_available_inode; a++)
   {
+    //calculate and init pointer blocks
     i[a].direct_blk[0] = sb->next_available_blk;
     init_datablk(fd, sb->data_offset, sb->blk_size, i[a].direct_blk[0]);
     i[a].direct_blk[1] = (i[a].i_size > sb->blk_size) ? ++sb->next_available_blk : sb->next_available_blk;
     init_datablk(fd, sb->data_offset, sb->blk_size, i[a].direct_blk[1]);
     i[a].indirect_blk = (i[a].i_size > sb->blk_size*2) ? ++sb->next_available_blk : sb->next_available_blk;
     init_datablk(fd, sb->data_offset, sb->blk_size, i[a].indirect_blk);
+
+    //write inode
     lseek(fd, sb->inode_offset + a*sizeof(inode), SEEK_SET);
     write(fd, &i[a], sizeof(inode));
     sb->next_available_blk++;
-    if(i[a].i_type == 1)
+
+    //write dir mapping
+    if(i[a].i_type == 1)//dir
     {
       lseek(fd, sb->data_offset+i[a].direct_blk[0]*sb->blk_size, SEEK_SET);
       /*int cur = i[a].direct_blk[0];
       int tmp_size = 0;*/
-      while(!dir[a].empty())
+      while(!dir[a].empty())//write dir mapping for dir
       {
         /*tmp_size+=sizeof(DIR_NODE);
         if(tmp_size > sb->blk_size)
@@ -177,10 +210,10 @@ void write_inode(int fd, superblock *sb)
         dir[a].pop();
       }
     }
-    else
+    else//file
     {
       int num_blk_needed = (int)(ceil((double)i[a].i_size / (double)sb->blk_size));
-      for(int k=2; k<num_blk_needed; k++)
+      for(int k=2; k<num_blk_needed; k++)//skip the number of data_blks
       {
         init_datablk(fd, sb->data_offset, sb->blk_size, sb->next_available_blk++);
       }
@@ -214,8 +247,11 @@ void write_bs(int fd, superblock *sb)
   free(boot);
 }
 
-superblock* read_sb(void)
+superblock* read_sb(char* path)
 {
+  char csv_path[PATH_LENGTH_LIMIT+50];
+  strcat(csv_path,path);
+  strcat(csv_path,"/superblock.csv");
   superblock *sb = (superblock*)malloc(sizeof(superblock));
   sb->inode_offset = INODE_OFFSET;
   sb->data_offset = DATA_OFFSET;
@@ -226,7 +262,7 @@ superblock* read_sb(void)
   sb->blk_size = BLOCK_SIZE;
 
   std::ifstream ifs;
-  ifs.open("superblock.csv", std::ifstream::in);
+  ifs.open(csv_path, std::ifstream::in);
   if(ifs.is_open()==0)
   {
     ifs.close();
@@ -234,7 +270,7 @@ superblock* read_sb(void)
   }
   ifs.close();
 
-  io::CSVReader<2> in("superblock.csv");
+  io::CSVReader<2> in(csv_path);
   std::string data_type;
   int data;
   while(in.read_row(data_type, data))
