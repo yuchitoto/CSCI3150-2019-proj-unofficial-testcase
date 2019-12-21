@@ -37,7 +37,7 @@ int main(int argc, char** argv)
     strcpy(path, argv[1]);
   }
   superblock *sb = read_sb(path);
-  int fd = open("../HD", O_RDWR | O_CREAT | O_TRUNC);
+  int fd = open("./HD", O_RDWR | O_CREAT | O_TRUNC);
   write_bs(fd, sb);
   init_inode(fd, sb->inode_offset, sb->max_inode, sb->data_offset);
   write_inode(fd, sb, path);
