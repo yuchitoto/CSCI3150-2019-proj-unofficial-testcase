@@ -67,12 +67,60 @@ int main(int argc, char** argv)
     print_sb_info(sb);
     char file[7][100] = {"/dir2", "/", "/dir3/dir6/dir7/file5", "/dir5", "/dir4/dir9/file", "/dir2/file4", "/dir4/dir9/dir10/dir11/file9"};
     int exp_ind[7] = {2,0,17,-1,-1,16,21};
+    int offset[] = {0,10,23,1100,2000,5000,8000,10000,50000};
+    int count[] = {1000,1000,2000,5000,10000,10000,20000,2000,1};
+    int j;
+		char buf[sb->blk_size*(2+sb->blk_size/sizeof(int))];
     for(int i=0; i<7; i++)
     {
       int ind = open_t(file[i]);
       if(ind!=exp_ind[i])
       {
         cout << "For " << file[i] << " expects inode " << exp_ind[i] << " but returned " << ind << endl;
+      }
+			if(exp_ind[i]<0)
+				continue;
+			int ans2[] = {1000,1000,1088,11,0};
+			int ans5[] = {1000,1000,2000,5000,6976,3976,976,0,0};
+			int ans6[] = {1000,1000,1291,214,0};
+			int tmprd;
+
+      switch(i)
+      {
+        case 2:
+
+        for(j=0;j<5;j++)
+        {
+					memset(buf,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
+          tmprd = read_t(ind,offset[j],buf,count[j]);
+          if(tmprd != ans2[j])
+						cout << "case " << i << " read case " << j << " expected " << ans2[j] << " but returned " << tmprd << endl;
+        }
+				break;
+        case 5:
+
+				for(j=0;j<9;j++)
+        {
+					memset(buf,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
+          tmprd = read_t(ind,offset[j],buf,count[j]);
+          if(tmprd != ans5[j])
+						cout << "case " << i << " read case " << j << " expected " << ans5[j] << " but returned " << tmprd << endl;
+        }
+				break;
+        case 6:
+
+				for(j=0;j<5;j++)
+        {
+					memset(buf,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
+          tmprd = read_t(ind,offset[j],buf,count[j]);
+          if(tmprd != ans6[j])
+						cout << "case " << i << " read case " << j << " expected "<< ans6[j] << " but returned " << tmprd << endl;
+        }
+				break;
+        default:
+				tmprd = read_t(ind,0,buf,5);
+				if(tmprd != -1)
+					cout << "case " << i << " expected -1 but returned " << tmprd << endl;
       }
     }
 

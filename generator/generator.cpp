@@ -44,6 +44,7 @@ int main(int argc, char** argv)
   write_sb(fd, sb);
   close(fd);
   free(sb);
+  free(path);
   return 0;
 }
 
@@ -135,7 +136,7 @@ void write_inode(int fd, superblock *sb, char *path)
     }
     else if(tp.compare("file")==0)//file
     {
-      if(size > (sb->blk_size*2 + sb->blk_size*(sb->blk_size/sizeof(inode))))
+      if(size > (sb->blk_size*2 + sb->blk_size*(sb->blk_size/sizeof(int))))
       {
         std::cerr << "warning: file: " << name << " too big" << std::endl;
       }
