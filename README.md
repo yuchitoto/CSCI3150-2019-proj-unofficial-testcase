@@ -33,6 +33,8 @@ Declaration: I did not use recursive algorithm to handle it
 Simple arithmetic on file_size(inode->i_size)
 
 ## Testcase
+Check data read to buffer is not yet implemented
+
 Usage: ./testcase [command]
 
 Command:
