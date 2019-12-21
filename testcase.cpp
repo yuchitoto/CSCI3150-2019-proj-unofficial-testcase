@@ -124,6 +124,8 @@ int main(int argc, char** argv)
       }
     }
 
+		//test buf
+
     close(fd);
   }
 

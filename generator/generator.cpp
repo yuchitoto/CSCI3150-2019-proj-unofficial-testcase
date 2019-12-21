@@ -21,6 +21,8 @@
 #define KB 1024
 #define MB 1024*KB
 
+const int readme = 3159;
+
 superblock* read_sb(char* path);
 void write_bs(int fd, superblock *sb);
 void write_sb(int fd, superblock *sb);
@@ -217,6 +219,50 @@ void write_inode(int fd, superblock *sb, char *path)
       for(int k=2; k<num_blk_needed; k++)//skip the number of data_blks
       {
         init_datablk(fd, sb->data_offset, sb->blk_size, sb->next_available_blk++);
+      }
+
+      if(i[a].i_size==readme)
+      {
+        //std::cout << "found readme" << std::endl;
+        int tmp_sz = size;
+        int r = open("./README.md",O_RDONLY);
+        char buf[sb->blk_size];
+        if(num_blk_needed>0)
+        {
+          memset(buf,0,sb->blk_size);
+          read(r,buf,(sb->blk_size<tmp_sz)?sb->blk_size:tmp_sz);
+          lseek(fd,sb->data_offset+i[a].direct_blk[0]*sb->blk_size,SEEK_SET);
+          write(fd,buf,sb->blk_size);
+          tmp_sz-=sb->blk_size;
+          if(num_blk_needed>1)
+          {
+            memset(buf,0,sb->blk_size);
+            read(r,buf,(sb->blk_size<tmp_sz)?sb->blk_size:tmp_sz);
+            lseek(fd,sb->data_offset+i[a].direct_blk[1]*sb->blk_size,SEEK_SET);
+            write(fd,buf,sb->blk_size);
+            tmp_sz-=sb->blk_size;
+            if(num_blk_needed>2)
+            {
+              int extra_blk = num_blk_needed-2;
+              int tmp_inode;
+              lseek(fd,sb->data_offset+i[a].indirect_blk*sb->blk_size,SEEK_SET);
+              for(int d=1;d<=extra_blk;d++)
+              {
+                tmp_inode = d+i[a].indirect_blk;
+                write(fd,&tmp_inode,sizeof(int));
+              }
+              lseek(fd,sb->data_offset+(i[a].indirect_blk+1)*sb->blk_size,SEEK_SET);
+              for(int d=0;d<extra_blk;d++)
+              {
+                memset(buf,0,sb->blk_size);
+                read(r,buf,(sb->blk_size<tmp_sz)?sb->blk_size:tmp_sz);
+                write(fd,buf,(sb->blk_size<tmp_sz)?sb->blk_size:tmp_sz);
+                tmp_sz-=sb->blk_size;
+              }
+            }
+          }
+        }
+        close(r);
       }
     }
   }
