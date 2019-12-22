@@ -123,9 +123,12 @@ int main(int argc, char** argv)
 					cout << "case " << i << " expected -1 but returned " << tmprd << endl;
       }
     }
+		cout << "fin normal" << endl;
 
 		//test buf
-		int test_read_ind = open_t("/dir3/dir6/file8");
+		char test_read_path[50] = "/dir3/dir6/dir8/file8";
+		int test_read_ind = open_t(test_read_path);
+		cout << "test_read_ind: " << test_read_ind << endl;
 		memset(buf,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
 		int out_sz = read_t(test_read_ind,0,buf,3159);
 		char chk_str[sb->blk_size*(2+sb->blk_size/sizeof(int))];
@@ -151,7 +154,7 @@ int main(int argc, char** argv)
   }
 	else if(strcmp(argv[1],"4")==0)
   {
-    system("./hd_generator ./testcases/1kb");
+    system("./hd_generator ./testcases/4kb");
     int fd = open("./HD",O_RDONLY);
     superblock *sb = read_sb_c(fd);
     print_sb_info(sb);
@@ -213,9 +216,12 @@ int main(int argc, char** argv)
 					cout << "case " << i << " expected -1 but returned " << tmprd << endl;
       }
     }
+		cout << "fin normal" << endl;
 
 		//test buf
-		int test_read_ind = open_t("/dir3/dir6/file8");
+		char test_read_path[50] = "/dir3/dir6/dir8/file8";
+		int test_read_ind = open_t(test_read_path);
+		cout << "test_read_ind: " << test_read_ind << endl;
 		memset(buf,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
 		int out_sz = read_t(test_read_ind,0,buf,3159);
 		char chk_str[sb->blk_size*(2+sb->blk_size/sizeof(int))];
