@@ -131,13 +131,13 @@ int main(int argc, char** argv)
 		//cout << "test_read_ind: " << test_read_ind << endl;
 
 		memset(buf,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
-		int out_sz = read_t(test_read_ind,0,buf,3159);
+		int out_sz = read_t(test_read_ind,0,buf,3130);
 
 		char *chk_str=(char*)malloc(sb->blk_size*(2+sb->blk_size/sizeof(int)));
 		memset(chk_str,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
 
 		int rd = open("README.md",O_RDONLY);
-		read(rd,chk_str,3159);
+		read(rd,chk_str,3130);
 
 		/*if(strcmp(buf,chk_str)!=0)
 		{
@@ -234,13 +234,13 @@ int main(int argc, char** argv)
 		//cout << "test_read_ind: " << test_read_ind << endl;
 
 		memset(buf,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
-		int out_sz = read_t(test_read_ind,0,buf,3159);
+		int out_sz = read_t(test_read_ind,0,buf,3130);
 
 		char *chk_str=(char*)malloc(sb->blk_size*(2+sb->blk_size/sizeof(int)));
 		memset(chk_str,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
 
 		int rd = open("README.md",O_RDONLY);
-		read(rd,chk_str,3159);
+		read(rd,chk_str,3130);
 		/*if(strcmp(buf,chk_str)!=0)
 		{
 			cout << "wrong reading" << endl;
