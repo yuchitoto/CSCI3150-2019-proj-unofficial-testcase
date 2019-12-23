@@ -33,13 +33,12 @@ Declaration: I did not use recursive algorithm to handle it
 Simple arithmetic on file_size(inode->i_size)
 
 ## Testcase
-Check data read to buffer is not yet implemented
-
 Usage: ./testcase [command]
 
 Command:
 official: official testcases
-1: simple 1kb testcases
+1: simple 1kb testcase
+4: simple 4kb testcase
 
 ## HD generator (beta)
 The HD generator is in [/generator](https://github.com/yuchitoto/CSCI3150-2019-proj-unofficial-testcase/tree/master/generator) folder. You can create different virtual HD for this project using this program by changing parameters in superblock.csv and dir_tree.csv
