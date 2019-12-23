@@ -33,6 +33,8 @@ Declaration: I did not use recursive algorithm to handle it
 Simple arithmetic on file_size(inode->i_size)
 
 ## Testcase
+Please use 1kb test case to test multi data block reading
+
 Usage: ./testcase [command]
 
 Command:

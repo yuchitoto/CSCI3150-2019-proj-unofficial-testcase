@@ -21,7 +21,7 @@
 #define KB 1024
 #define MB 1024*KB
 
-const int readme = 3130;
+const int readme = 3191;
 
 superblock* read_sb(char* path);
 void write_bs(int fd, superblock *sb);
