@@ -221,10 +221,12 @@ void write_inode(int fd, superblock *sb, char *path)
         init_datablk(fd, sb->data_offset, sb->blk_size, sb->next_available_blk++);
       }
 
+      //std::cout << num_blk_needed << " " << sb->blk_size << " " << i[a].i_size << std::endl << std::endl;
+
       if(i[a].i_size==readme)
       {
         //std::cout << "found readme" << std::endl;
-        int tmp_sz = size;
+        int tmp_sz = i[a].i_size;
         int r = open("./README.md",O_RDONLY);
         char buf[sb->blk_size];
         if(num_blk_needed>0)
@@ -233,6 +235,7 @@ void write_inode(int fd, superblock *sb, char *path)
           read(r,buf,(sb->blk_size<tmp_sz)?sb->blk_size:tmp_sz);
           lseek(fd,sb->data_offset+i[a].direct_blk[0]*sb->blk_size,SEEK_SET);
           write(fd,buf,sb->blk_size);
+          //std::cout << buf << std::endl << std::endl;
           tmp_sz-=sb->blk_size;
           if(num_blk_needed>1)
           {
@@ -240,6 +243,7 @@ void write_inode(int fd, superblock *sb, char *path)
             read(r,buf,(sb->blk_size<tmp_sz)?sb->blk_size:tmp_sz);
             lseek(fd,sb->data_offset+i[a].direct_blk[1]*sb->blk_size,SEEK_SET);
             write(fd,buf,sb->blk_size);
+            //std::cout << buf << std::endl << std::endl;
             tmp_sz-=sb->blk_size;
             if(num_blk_needed>2)
             {
@@ -258,6 +262,7 @@ void write_inode(int fd, superblock *sb, char *path)
                 read(r,buf,(sb->blk_size<tmp_sz)?sb->blk_size:tmp_sz);
                 write(fd,buf,(sb->blk_size<tmp_sz)?sb->blk_size:tmp_sz);
                 tmp_sz-=sb->blk_size;
+                //std::cout << buf << std::endl << std::endl;
               }
             }
           }
