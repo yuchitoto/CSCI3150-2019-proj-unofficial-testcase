@@ -9,6 +9,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#ifndef README_SIZE
+#define README_SIZE 3191
+#endif
+
 using namespace std;
 
 superblock* read_sb_c(int fd) //copied from Tutorial 1
@@ -46,7 +50,7 @@ int main(int argc, char** argv)
   if(argc != 2)
   {
     cerr << "Usage: ./testcase [command]" << endl;
-    cerr << "command\n" << "official: official test case\n" << "1: 1KB block size HD test\n" << endl;
+    cerr << "command\n" << "official: official test case\n" << "1: 1KB block size HD test\n" << "4: 4KB block size HD test\n" << endl;
     return 0;
   }
   system("g++ generator/generator.cpp -o hd_generator -lpthread -std=c++0x");
@@ -131,13 +135,13 @@ int main(int argc, char** argv)
 		//cout << "test_read_ind: " << test_read_ind << endl;
 
 		memset(buf,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
-		int out_sz = read_t(test_read_ind,0,buf,3191);
+		int out_sz = read_t(test_read_ind,0,buf,README_SIZE);
 
 		char *chk_str=(char*)malloc(sb->blk_size*(2+sb->blk_size/sizeof(int)));
 		memset(chk_str,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
 
 		int rd = open("README.md",O_RDONLY);
-		read(rd,chk_str,3191);
+		read(rd,chk_str,README_SIZE);
 
 		/*if(strcmp(buf,chk_str)!=0)
 		{
@@ -234,13 +238,13 @@ int main(int argc, char** argv)
 		//cout << "test_read_ind: " << test_read_ind << endl;
 
 		memset(buf,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
-		int out_sz = read_t(test_read_ind,0,buf,3191);
+		int out_sz = read_t(test_read_ind,0,buf,README_SIZE);
 
 		char *chk_str=(char*)malloc(sb->blk_size*(2+sb->blk_size/sizeof(int)));
 		memset(chk_str,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
 
 		int rd = open("README.md",O_RDONLY);
-		read(rd,chk_str,3191);
+		read(rd,chk_str,README_SIZE);
 		/*if(strcmp(buf,chk_str)!=0)
 		{
 			cout << "wrong reading" << endl;
