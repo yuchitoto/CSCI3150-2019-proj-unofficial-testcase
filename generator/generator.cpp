@@ -21,7 +21,9 @@
 #define KB 1024
 #define MB 1024*KB
 
-const int readme = 3191;
+#ifndef README_SIZE
+#define README_SIZE 3191
+#ifend
 
 superblock* read_sb(char* path);
 void write_bs(int fd, superblock *sb);
@@ -223,7 +225,7 @@ void write_inode(int fd, superblock *sb, char *path)
 
       //std::cout << num_blk_needed << " " << sb->blk_size << " " << i[a].i_size << std::endl << std::endl;
 
-      if(i[a].i_size==readme)
+      if(i[a].i_size==README_SIZE)
       {
         //std::cout << "found readme" << std::endl;
         int tmp_sz = i[a].i_size;
