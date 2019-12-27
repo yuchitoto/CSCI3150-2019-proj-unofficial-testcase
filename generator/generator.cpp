@@ -23,7 +23,7 @@
 
 #ifndef README_SIZE
 #define README_SIZE 3191
-#ifend
+#endif
 
 superblock* read_sb(char* path);
 void write_bs(int fd, superblock *sb);
