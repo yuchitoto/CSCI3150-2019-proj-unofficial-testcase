@@ -62,6 +62,9 @@ int main(int argc, char** argv)
     system("gcc official\\ test\\ cases/read_test.c call.c -I. -o read_t");
     system("./read_t");
     system("rm read_t open_t");
+		system("unzip ./official\\ test\\ cases\\ 2/HD.zip");
+		system("gcc official\\ test\\ cases\\ 2/read_test.c call.c -I. -o read_t");
+		system("./read_t");
   }
   else if(strcmp(argv[1],"1")==0)
   {

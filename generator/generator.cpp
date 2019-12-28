@@ -189,6 +189,11 @@ void write_inode(int fd, superblock *sb, char *path)
     i[a].indirect_blk = (i[a].i_size > sb->blk_size*2) ? ++sb->next_available_blk : sb->next_available_blk;
     init_datablk(fd, sb->data_offset, sb->blk_size, i[a].indirect_blk);
 
+    i[a].i_blocks = ceil((double)i[a].i_size / (double)sb->blk_size);
+    i[a].i_blocks += (i[a].i_blocks>2)?1:0;
+
+    i[a].file_num = dir[a].size();
+
     //write inode
     lseek(fd, sb->inode_offset + a*sizeof(inode), SEEK_SET);
     write(fd, &i[a], sizeof(inode));
