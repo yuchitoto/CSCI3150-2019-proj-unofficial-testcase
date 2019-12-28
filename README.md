@@ -38,8 +38,11 @@ Please use 1kb test case to test multi data block reading
 Usage: ./testcase [command]
 
 Command:
+
 official: official testcases
+
 1: simple 1kb testcase
+
 4: simple 4kb testcase
 
 ## HD generator (beta)

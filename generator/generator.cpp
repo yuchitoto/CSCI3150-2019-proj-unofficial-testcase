@@ -22,7 +22,7 @@
 #define MB 1024*KB
 
 #ifndef README_SIZE
-#define README_SIZE 3191
+#define README_SIZE 3197
 #endif
 
 superblock* read_sb(char* path);
