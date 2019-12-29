@@ -217,14 +217,14 @@ int main(int argc, char** argv) {
                         cout << "case " << i << " expected -1 but returned " << tmprd << endl;
             }
         }
-        cout << "\n------------------------------Test Buf------------------------------\n"
+        cout << "\n------------------------------Testing read_t()------------------------------\n"
              << endl;
 
         //test buf
         char test_read_path[50] = "/dir3/dir6/dir8/file8";
         int test_read_ind = open_t(test_read_path);
         //cout << "test_read_ind: " << test_read_ind << endl;
-
+				cout << "\n--------------------Long string with 0 offset-------------------------------\n" << endl;
         memset(buf, 0, sb->blk_size * (2 + sb->blk_size / sizeof(int)));
         int out_sz = read_t(test_read_ind, 0, buf, README_SIZE);
 
@@ -238,7 +238,7 @@ int main(int argc, char** argv) {
             cout << "string read: " << buf << endl;
             cout << "ans: " << chk_str << endl;
         }
-
+				cout << "\n--------------------Short string with offset-------------------------------\n" << endl;
         memset(buf, 0, sb->blk_size * (2 + sb->blk_size / sizeof(int)));
         memset(chk_str, 0, sb->blk_size * (2 + sb->blk_size / sizeof(int)));
 
@@ -255,6 +255,7 @@ int main(int argc, char** argv) {
         close(rd);
 
         close(fd);
+				cout << "\n--------------------------- END-------------------------------\n" << endl;
     }
 
     return 0;
