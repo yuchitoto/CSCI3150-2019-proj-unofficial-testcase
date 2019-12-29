@@ -146,12 +146,12 @@ int main(int argc, char** argv)
 		int rd = open("README.md",O_RDONLY);
 		read(rd,chk_str,README_SIZE);
 
-		/*if(strcmp(buf,chk_str)!=0)
+		if(strcmp(buf,chk_str)!=0)
 		{
 			cout << "wrong reading" << endl;
 			cout << "string read: " << buf << endl;
 			cout << "ans: " << chk_str << endl;
-		}*/
+		}
 		memset(buf,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
 		memset(chk_str,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
 
@@ -248,12 +248,12 @@ int main(int argc, char** argv)
 
 		int rd = open("README.md",O_RDONLY);
 		read(rd,chk_str,README_SIZE);
-		/*if(strcmp(buf,chk_str)!=0)
+		if(strcmp(buf,chk_str)!=0)
 		{
 			cout << "wrong reading" << endl;
 			cout << "string read: " << buf << endl;
 			cout << "ans: " << chk_str << endl;
-		}*/
+		}
 
 		memset(buf,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
 		memset(chk_str,0,sb->blk_size*(2+sb->blk_size/sizeof(int)));
