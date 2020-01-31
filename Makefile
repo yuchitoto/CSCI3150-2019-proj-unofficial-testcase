@@ -1,8 +1,14 @@
 CC=g++
+DEPSFLAGS=-std=c++0x -lpthread
+CFLAGS=-I. -Igenerator -Icall
+VPATH=./generator
 
-testcase: testcase.cpp call.c
+testcase: testcase.o call.o generator.o
 	git submodule update --init --recursive
-	$(CC) testcase.cpp call.c -o testcase -g3
+	$(CC) -o testcase testcase.o call.o generator.o $(CFLAGS) $(DEPSFLAGS)
+
+generator.o: generator.cpp
+	$(CC) -c generator/generator.cpp $(DEPSFLAGS)
 
 clean:
-	rm HD testcase hd_generator
+	rm testcase.o call.o generator.o

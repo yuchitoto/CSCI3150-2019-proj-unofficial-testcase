@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include "call.h"
+#include "./generator/generator.hpp"
 
 #ifndef README_SIZE
 #define README_SIZE 3229
@@ -55,7 +56,9 @@ int main(int argc, char** argv) {
              << endl;
         return 0;
     }
-    system("g++ generator/generator.cpp -o hd_generator -lpthread -std=c++0x");
+    char *path;
+    int gen_des=1;
+    //system("g++ generator/generator.cpp -o hd_generator -lpthread -std=c++0x");
     if (strcmp(argv[1], "official") == 0) {
         system("unzip ./official\\ test\\ cases/HD.zip");
         system("gcc official\\ test\\ cases/open_test.c call.c -I. -o open_t");
@@ -67,6 +70,12 @@ int main(int argc, char** argv) {
         system("gcc official\\ test\\ cases\\ 2/read_test.c call.c -I. -o read_t");
         system("./read_t");
     } else if (strcmp(argv[1], "1") == 0) {
+        path = "./testcases/1kb";
+        if((gen_des=generator(path))!=0)
+        {
+          cerr << "failed to generate HD" << endl;
+          exit(-1);
+        }
         system("./hd_generator ./testcases/1kb");
         int fd = open("./HD", O_RDONLY);
         superblock* sb = read_sb_c(fd);
@@ -160,7 +169,12 @@ int main(int argc, char** argv) {
 
         close(fd);
     } else if (strcmp(argv[1], "4") == 0) {
-        system("./hd_generator ./testcases/4kb");
+        path = "./testcases/4kb";
+        if((gen_des=generator(path))!=0)
+        {
+          cerr << "failed to generate HD" << endl;
+          exit(-1);
+        }
         int fd = open("./HD", O_RDONLY);
         superblock* sb = read_sb_c(fd);
         print_sb_info(sb);
