@@ -32,14 +32,14 @@ void init_inode(int fd, int inode_offset, int max_inode, int data_offset);
 void write_inode(int fd, superblock *sb, char* path);
 void init_datablk(int fd, int data_offset, int blk_size, int pos);
 
-int main(int argc, char** argv)
+int generator(char* path)
 {
-  char *path = (char*)malloc(PATH_LENGTH_LIMIT);
+  /*char *path = (char*)malloc(PATH_LENGTH_LIMIT);
   strcpy(path,"./");
   if(argc == 2)
   {
     strcpy(path, argv[1]);
-  }
+  }*/
   superblock *sb = read_sb(path);
   int fd = open("./HD", O_RDWR | O_CREAT | O_TRUNC);
   write_bs(fd, sb);
