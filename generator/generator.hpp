@@ -11,6 +11,11 @@
 #define README_SIZE 3229
 #endif
 
+/*
+* create HD using testcase with specification using csv
+* @param path of csv
+* @return status of whether success or not, HD file should be printed
+*/
 int generator(char* path);
 
 #endif //GENERATOR_HPP

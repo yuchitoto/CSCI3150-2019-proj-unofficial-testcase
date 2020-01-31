@@ -48,7 +48,6 @@ int generator(char* path)
   write_sb(fd, sb);
   close(fd);
   free(sb);
-  free(path);
   return 0;
 }
 

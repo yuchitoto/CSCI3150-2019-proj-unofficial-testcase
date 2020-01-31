@@ -20,5 +20,6 @@ int main(int argc, char** argv)
   {
     cerr << "Error occured in generator function" << endl;
   }
+  free(path);
   return 0;
 }
